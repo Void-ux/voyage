@@ -1,12 +1,12 @@
 #![warn(clippy::str_to_string)]
 
 mod commands;
-mod utils;
 mod structs;
+mod utils;
 
 use poise::serenity_prelude as serenity;
-use std::{collections::HashMap, env::var, sync::{Mutex}, time::Duration};
-use structs::{Data, CommandError, Context};
+use std::{collections::HashMap, env::var, sync::Mutex, time::Duration};
+use structs::{CommandError, Context, Data};
 
 async fn on_error(error: poise::FrameworkError<'_, Data, CommandError>) {
     // This is our custom error handler
@@ -28,18 +28,25 @@ async fn on_error(error: poise::FrameworkError<'_, Data, CommandError>) {
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
-    let conn_options = sqlx::sqlite::SqliteConnectOptions::new()
-        .filename("database.sqlite")
-        .create_if_missing(true);
-    let pool = sqlx::sqlite::SqlitePoolOptions::new()
-        .connect_with(conn_options)
+    let options = sqlx::postgres::PgPoolOptions::new();
+    let pool = options
+        .connect_with(
+            sqlx::postgres::PgConnectOptions::new()
+                .host(&var("POSTGRES_HOST").unwrap())
+                .username(&var("POSTGRES_USER").unwrap())
+                .database(&var("POSTGRES_DATABASE").unwrap())
+                .password(&var("POSTGRES_PASSWORD").unwrap()),
+        )
         .await
         .unwrap();
-    sqlx::query("CREATE TABLE IF NOT EXISTS commands(command_name TEXT, author_id BIGINT)").execute(&pool).await.unwrap();
+    sqlx::query("CREATE TABLE IF NOT EXISTS commands(command_name TEXT, author_id BIGINT)")
+        .execute(&pool)
+        .await
+        .unwrap();
 
     let data = Data {
         votes: Mutex::new(HashMap::new()),
-        pool: pool
+        pool: pool,
     };
 
     // FrameworkOptions contains all of poise's configuration option in one struct
@@ -56,7 +63,7 @@ async fn main() {
         /// This code is run before every command
         pre_command: |ctx| {
             Box::pin(async move {
-                sqlx::query("INSERT INTO commands VALUES (?, ?)")
+                sqlx::query("INSERT INTO commands VALUES ($1, $2)")
                     .bind(&ctx.command().qualified_name)
                     .bind(*ctx.author().id.as_u64() as i64)
                     .execute(&ctx.data().pool)
@@ -92,10 +99,7 @@ async fn main() {
     };
 
     poise::Framework::builder()
-        .token(
-            var("DISCORD_TOKEN")
-                .expect("Missing `DISCORD_TOKEN` env var."),
-        )
+        .token(var("DISCORD_TOKEN").expect("Missing `DISCORD_TOKEN` env var."))
         .setup(move |ctx, _ready, framework| {
             Box::pin(async move {
                 println!("Logged in as {}", _ready.user.name);

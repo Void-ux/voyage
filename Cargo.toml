@@ -10,5 +10,5 @@ serenity = { default-features = false, version = "0.11.5" }
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 poise = { version = "0.5.5" }
 dotenv = "0.15.0"
-sqlx = { version = "0.6.3", features = [ "runtime-tokio-rustls", "sqlite", "chrono", "time", "json" ] }
+sqlx = { version = "0.6.3", features = [ "runtime-tokio-rustls", "postgres", "macros" ] }
 anyhow = "1.0.71"

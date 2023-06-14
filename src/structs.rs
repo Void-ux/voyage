@@ -1,8 +1,8 @@
-use std::{sync::Mutex, collections::HashMap};
+use std::{collections::HashMap, sync::Mutex};
 
 pub struct Data {
     pub votes: Mutex<HashMap<String, u32>>,
-    pub pool: sqlx::sqlite::SqlitePool
+    pub pool: sqlx::postgres::PgPool,
 }
 
 pub type Command = poise::Command<Data, CommandError>;
