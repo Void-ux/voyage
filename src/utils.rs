@@ -1,7 +1,7 @@
 pub struct TabularData {
     columns: Vec<String>,
     rows: Vec<Vec<String>>,
-    column_widths: Vec<usize>
+    column_widths: Vec<usize>,
 }
 
 impl TabularData {
@@ -9,12 +9,12 @@ impl TabularData {
         Self {
             columns: vec![],
             rows: vec![],
-            column_widths: vec![]
+            column_widths: vec![],
         }
     }
     pub fn set_columns(&mut self, columns: Vec<String>) {
         self.columns = columns.clone();
-        
+
         self.column_widths = Vec::new();
         for i in columns {
             self.column_widths.push(i.len() + 2);
@@ -47,10 +47,10 @@ impl TabularData {
             let elem = row
                 .iter()
                 .zip(widths)
-                .map(|(d, w)| format!("{:^width$}", d, width=w))
+                .map(|(d, w)| format!("{:^width$}", d, width = w))
                 .collect::<Vec<String>>()
                 .join("|");
-            
+
             format!("|{}|", elem)
         }
 

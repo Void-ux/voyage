@@ -1,20 +1,18 @@
 use sqlx::Row;
 
-use crate::{Context, CommandError, utils::TabularData};
 use crate::structs::Command;
+use crate::{utils::TabularData, CommandError, Context};
 
 #[poise::command(prefix_command, slash_command, subcommands("all"))]
-pub async fn stats(
-    _ctx: Context<'_>,
-) -> Result<(), CommandError> { 
+pub async fn stats(_ctx: Context<'_>) -> Result<(), CommandError> {
     Ok(())
 }
 
 #[poise::command(prefix_command, slash_command)]
-pub async fn all(
-    ctx: Context<'_>,
-) -> Result<(), CommandError> {
-    let data = sqlx::query("SELECT * FROM commands").fetch_all(&ctx.data().pool).await?;
+pub async fn all(ctx: Context<'_>) -> Result<(), CommandError> {
+    let data = sqlx::query("SELECT * FROM commands")
+        .fetch_all(&ctx.data().pool)
+        .await?;
 
     let mut table = TabularData::new();
     table.set_columns(vec!["command".into(), "author".into()]);

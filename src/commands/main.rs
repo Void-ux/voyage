@@ -1,5 +1,5 @@
-use crate::{Context, CommandError};
 use crate::structs::Command;
+use crate::{CommandError, Context};
 
 /// Show this help menu
 #[poise::command(prefix_command, track_edits, slash_command)]
