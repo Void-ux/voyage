@@ -5,6 +5,7 @@ pub struct TabularData {
 }
 
 impl TabularData {
+    /// Constructs a new table with empty columns and no rows.
     pub fn new() -> Self {
         Self {
             columns: vec![],
@@ -12,6 +13,8 @@ impl TabularData {
             column_widths: vec![],
         }
     }
+
+    /// Set the columns of a table.
     pub fn set_columns(&mut self, columns: Vec<String>) {
         self.columns = columns.clone();
 
@@ -21,6 +24,7 @@ impl TabularData {
         }
     }
 
+    /// Adds a row to the table, each element should correspond to a column.
     pub fn add_row(&mut self, row: Vec<String>) {
         for (i, el) in row.iter().enumerate() {
             if el.len() + 2 > self.column_widths[i] {
@@ -31,6 +35,15 @@ impl TabularData {
         self.rows.push(row);
     }
 
+    /// Renders the table with its columns in rST format e.g.
+    /// ```
+    /// +-------+-----+
+    /// | Name  | Age |
+    /// +-------+-----+
+    /// | Alice | 24  |
+    /// |  Bob  | 19  |
+    /// +-------+-----+
+    /// ```
     pub fn render(&self) -> String {
         let mut table: Vec<String> = Vec::new();
 
