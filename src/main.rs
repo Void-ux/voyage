@@ -5,9 +5,11 @@ mod database;
 mod structs;
 mod utils;
 
-use poise::serenity_prelude as serenity;
 use std::{collections::HashMap, env::var, sync::Mutex, time::Duration};
+use poise::serenity_prelude as serenity;
+use sysinfo::SystemExt;
 use structs::{CommandError, Context, Data};
+
 
 async fn on_error(error: poise::FrameworkError<'_, Data, CommandError>) {
     // This is our custom error handler
@@ -44,6 +46,7 @@ async fn main() {
     let data = Data {
         votes: Mutex::new(HashMap::new()),
         pool: pool,
+        system_info: Mutex::new(sysinfo::System::new())
     };
 
     // FrameworkOptions contains all of poise's configuration option in one struct

@@ -11,4 +11,5 @@ tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 poise = { version = "0.5.5" }
 dotenv = "0.15.0"
 sqlx = { version = "0.6.3", features = [ "runtime-tokio-rustls", "postgres", "macros", "chrono" ] }
-anyhow = "1.0.71"
+sysinfo = "0.29.2"
+num-format = "0.4.4"
