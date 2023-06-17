@@ -56,7 +56,7 @@ impl TabularData {
         sep = format!("+{}", sep);
         table.push(sep.clone());
 
-        fn get_entry(row: &Vec<String>, widths: &Vec<usize>) -> String {
+        fn get_entry(row: &[String], widths: &Vec<usize>) -> String {
             let elem = row
                 .iter()
                 .zip(widths)
