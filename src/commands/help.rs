@@ -6,7 +6,7 @@ enum HelpCommandMode<'a> {
     Command(&'a Command)
 }
 
-fn format_params<'a, U, E>(command: &poise::Command<U, E>) -> String {
+fn format_params<U, E>(command: &poise::Command<U, E>) -> String {
     command.parameters.iter().map(|p| {
         if p.required {
             format!("<{}> ", p.name)
@@ -74,7 +74,7 @@ pub async fn help(
             let mut subcommand_iterator = command.split(' ');
             let top_level_command = subcommand_iterator.next().unwrap();
 
-            let match_ = find_command(&commands_, top_level_command, false);
+            let match_ = find_command(commands_, top_level_command, false);
             if match_.is_none() {
                 ctx.say(format!("Command {} not found", command)).await?;
                 return Ok(())
@@ -91,18 +91,18 @@ pub async fn help(
     };
 
     ctx.send(|b| b.embed(|e| e
-        .title(format!("{}", match &mode {
+        .title(match &mode {
             HelpCommandMode::Root => ctx.serenity_context().cache.current_user_field(|user| user.name.clone()) + " Help",
             HelpCommandMode::Command(c) | HelpCommandMode::Group(c) => format!("{} {}", c.qualified_name.clone(), &*format_params(c))
-        }))
-        .description(format!("{}", match &mode {
+        })
+        .description(match &mode {
             HelpCommandMode::Root => {
                 commands_.iter().map(|c| {
                     format!("**{} {}**\n{}", c.qualified_name.clone(), &*format_params(c), c.description.clone().unwrap_or("No description provided".to_owned()))
                 }).collect::<Vec<String>>().join("\n\n")
             },
             HelpCommandMode::Command(c) | HelpCommandMode::Group(c) => c.description.clone().unwrap_or("No description provided".to_owned())
-        }))
+        })
         .colour(0xC0C0C0)
     )).await?;
 

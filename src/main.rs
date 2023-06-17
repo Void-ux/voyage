@@ -44,8 +44,8 @@ async fn main() {
         .unwrap();
 
     let data = Data {
+        pool,
         votes: Mutex::new(HashMap::new()),
-        pool: pool,
         system_info: Mutex::new(sysinfo::System::new())
     };
 
@@ -73,7 +73,7 @@ async fn main() {
                     .bind(ctx.created_at().date_naive())
                     .bind(ctx.prefix())
                     .bind(&ctx.command().qualified_name)
-                    .bind(if ctx.prefix() == "/" { true } else { false })
+                    .bind(ctx.prefix() == "/")
                     .execute(&ctx.data().pool)
                     .await
                     .unwrap();
