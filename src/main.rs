@@ -5,7 +5,7 @@ mod database;
 mod structs;
 mod utils;
 
-use std::{collections::HashMap, env::var, sync::Mutex, time::Duration};
+use std::{env::var, sync::Mutex, time::Duration};
 use poise::serenity_prelude as serenity;
 use sysinfo::SystemExt;
 use structs::{CommandError, Context, Data};

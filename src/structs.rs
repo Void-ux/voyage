@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Mutex};
+use std::sync::Mutex;
 
 pub struct Data {
     pub pool: sqlx::postgres::PgPool,
