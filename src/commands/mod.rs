@@ -4,6 +4,7 @@ mod main;
 mod help;
 mod stats;
 mod economy;
+mod owner;
 
 pub fn commands() -> Vec<Command> {
     main::commands()
@@ -11,5 +12,6 @@ pub fn commands() -> Vec<Command> {
         .chain(stats::commands())
         .chain(help::commands())
         .chain(economy::commands())
+        .chain(owner::commands())
         .collect()
 }
