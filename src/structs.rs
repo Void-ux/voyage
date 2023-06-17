@@ -1,7 +1,6 @@
 use std::{collections::HashMap, sync::Mutex};
 
 pub struct Data {
-    pub votes: Mutex<HashMap<String, u32>>,
     pub pool: sqlx::postgres::PgPool,
     pub system_info: Mutex<sysinfo::System>
 }

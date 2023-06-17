@@ -45,7 +45,6 @@ async fn main() {
 
     let data = Data {
         pool,
-        votes: Mutex::new(HashMap::new()),
         system_info: Mutex::new(sysinfo::System::new())
     };
 
