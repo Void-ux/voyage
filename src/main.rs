@@ -1,5 +1,3 @@
-#![warn(clippy::str_to_string)]
-
 mod commands;
 mod database;
 mod structs;
@@ -9,7 +7,6 @@ use std::{env::var, sync::Mutex, time::Duration};
 use poise::serenity_prelude as serenity;
 use sysinfo::SystemExt;
 use structs::{CommandError, Context, Data};
-
 
 async fn on_error(error: poise::FrameworkError<'_, Data, CommandError>) {
     // This is our custom error handler
