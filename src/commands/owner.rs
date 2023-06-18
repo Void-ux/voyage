@@ -21,7 +21,7 @@ pub async fn sql(ctx: Context<'_>, #[rest] query: String) -> Result<(), CommandE
                 table.add_row(row_data)
             }
 
-            ctx.say(format!("\n```{}```", table.render())).await?;
+            ctx.say(format!("```\n{}```", table.render())).await?;
         },
         Err(e) => {
             ctx.say(e.to_string()).await?;
