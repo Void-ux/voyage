@@ -13,3 +13,4 @@ dotenv = "0.15.0"
 sqlx = { version = "0.6.3", features = [ "runtime-tokio-rustls", "postgres", "macros", "chrono", "bigdecimal" ] }
 sysinfo = "0.29.2"
 num-format = "0.4.4"
+chrono = "0.4.26"

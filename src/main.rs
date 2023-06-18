@@ -62,26 +62,26 @@ async fn main() {
         /// This code is run before every command
         pre_command: |ctx| {
             Box::pin(async move {
-                sqlx::query(r#"
-                    INSERT INTO commands (guild_id, channel_id, author_id, used, prefix, command, slash, failed)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, NULL)
-                "#)
-                    .bind(*ctx.guild_id().unwrap().as_u64() as i64)
-                    .bind(*ctx.channel_id().as_u64() as i64)
-                    .bind(*ctx.author().id.as_u64() as i64)
-                    .bind(ctx.created_at().date_naive())
-                    .bind(ctx.prefix())
-                    .bind(&ctx.command().qualified_name)
-                    .bind(ctx.prefix() == "/")
-                    .execute(&ctx.data().pool)
-                    .await
-                    .unwrap();
+                println!("Invoked command {}", ctx.command().qualified_name)
             })
         },
         /// This code is run after a command if it was successful (returned Ok)
         post_command: |ctx| {
             Box::pin(async move {
-                println!("Executed command {}...", ctx.command().qualified_name);
+                sqlx::query!(
+                    "INSERT INTO commands (guild_id, channel_id, author_id, used, prefix, command, slash, failed)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, NULL)",
+                    *ctx.guild_id().unwrap().as_u64() as i64,
+                    *ctx.channel_id().as_u64() as i64,
+                    *ctx.author().id.as_u64() as i64,
+                    ctx.created_at().naive_utc(),
+                    ctx.prefix(),
+                    &ctx.command().qualified_name,
+                    ctx.prefix() == "/",
+                )
+                .execute(&ctx.data().pool)
+                .await
+                .unwrap();
             })
         },
         event_handler: |_ctx, _event, _framework, _data| {
