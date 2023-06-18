@@ -34,6 +34,10 @@ CREATE TABLE IF NOT EXISTS vc_metrics
     time_left  TIMESTAMP NOT NULL
 );
 
+--
+-- Economy
+--
+
 CREATE TYPE bal_type AS ENUM ('wallet', 'bank');
 
 CREATE TABLE IF NOT EXISTS economy
@@ -51,4 +55,48 @@ CREATE TABLE IF NOT EXISTS economy
     daily      BOOLEAN     NOT NULL,
     weekly     BOOLEAN     NOT NULL,
     monthly    BOOLEAN     NOT NULL
+);
+
+--
+-- Inventory
+--
+CREATE TABLE IF NOT EXISTS explore_items
+(
+    id         SMALLINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name       TEXT     NOT NULL,
+    sell_price BIGINT   NOT NULL,
+    tier       TEXT     NOT NULL, -- e.g. legendary
+    -- reward upon consumption, if any
+    health     SMALLINT,
+    emoji_id   BIGINT   NOT NULL,
+    emoji_name TEXT     NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS inventory
+(
+    id       BIGINT    GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id  BIGINT    NOT NULL,
+    guild_id BIGINT    NOT NULL,
+    UNIQUE (user_id, guild_id)
+);
+
+CREATE TABLE IF NOT EXISTS inventory_items  -- map inventory and items
+(
+    item_id      SMALLINT  NOT NULL REFERENCES explore_items(id),
+    inventory_id INT       NOT NULL REFERENCES inventory(id),
+    time         TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS profiles
+(
+    user_id     BIGINT,
+    guild_id    BIGINT,
+    health      SMALLINT NOT NULL DEFAULT 100,
+    health_lvl  SMALLINT NOT NULL DEFAULT 0,
+    regen_lvl   SMALLINT NOT NULL DEFAULT 0,
+    defence_lvl SMALLINT NOT NULL DEFAULT 0,
+    attack_lvl  SMALLINT NOT NULL DEFAULT 0,
+    weapon      SMALLINT REFERENCES explore_items(id),
+    armour      SMALLINT REFERENCES explore_items(id),
+    PRIMARY KEY (user_id, guild_id)
 );

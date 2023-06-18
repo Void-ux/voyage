@@ -2,6 +2,9 @@ use crate::structs::{Command, CommandError, BalType};
 use crate::Context;
 use poise::serenity_prelude as serenity;
 use chrono::{Utc, Duration, NaiveDateTime};
+use rand::rngs::StdRng;
+use rand::{SeedableRng, seq::SliceRandom};
+use titlecase::titlecase;
 
 /// Displays your wallet and bank balance
 #[poise::command(prefix_command, slash_command, guild_only, aliases("bal"))]
@@ -26,7 +29,7 @@ pub async fn balance(ctx: Context<'_>, member: Option<serenity::Member>) -> Resu
         .field("Bank", format!("{}", bank), true)
         .author(|a| a
             .name(member.display_name())
-            .icon_url(member.avatar_url().unwrap_or(member.user.avatar_url().unwrap_or(member.user.default_avatar_url())))
+            .icon_url(member.face())
         )
     )).await?;
 
@@ -201,6 +204,54 @@ pub async fn daily(ctx: Context<'_>) -> Result<(), CommandError> {
     Ok(())
 }
 
-pub fn commands() -> [Command; 5] {
-    [balance(), give(), deposit(), withdraw(), daily()]
+/// Embark on a journey to find some new items you can use or sell
+#[poise::command(prefix_command, slash_command, guild_only)]
+pub async fn explore(ctx: Context<'_>) -> Result<(), CommandError> {
+    let mut rng: StdRng = SeedableRng::from_entropy();
+    let tier = [("common", 80), ("rare", 15), ("legendary", 5)].choose_weighted(&mut rng, |i| i.1).unwrap().0;
+
+    let items: Vec<(i16, String)> = sqlx::query!("SELECT id, name FROM explore_items WHERE tier=$1", tier)
+        .fetch_all(&ctx.data().pool)
+        .await?
+        .iter()
+        .map(|r| (r.id, r.name.to_owned()))
+        .collect();
+    let (item_id, item_name) = items.choose(&mut rng).unwrap();
+
+    sqlx::query!(
+        "INSERT INTO inventory (user_id, guild_id) VALUES ($1, $2) ON CONFLICT (user_id, guild_id) DO NOTHING",
+        *ctx.author().id.as_u64() as i64,
+        *ctx.guild_id().unwrap().as_u64() as i64
+    ).execute(&ctx.data().pool).await?;
+    sqlx::query!(
+        "INSERT INTO inventory_items (item_id, inventory_id)
+        VALUES (
+            $1, (
+                SELECT id FROM inventory
+                WHERE user_id=$2
+                AND guild_id=$3
+            )
+        )",
+        item_id,
+        *ctx.author().id.as_u64() as i64,
+        *ctx.guild_id().unwrap().as_u64() as i64
+    ).execute(&ctx.data().pool).await?;
+
+    ctx.send(|b| b.embed(|e| e
+        .author(|a| a
+            .name("Explore")
+            .icon_url(ctx.author().face())
+        )
+        .description(format!(
+            "\u{200b}\n*You went exploring and found...*\n\n__**Found**__\n`-` **x1** {} ({})",
+            titlecase(item_name),
+            titlecase(tier)
+        ))
+    )).await?;
+
+    Ok(())
+}
+
+pub fn commands() -> [Command; 6] {
+    [balance(), give(), deposit(), withdraw(), daily(), explore()]
 }
