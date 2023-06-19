@@ -1,11 +1,20 @@
 use crate::structs::{Command, CommandError, BalType};
 use crate::Context;
 use crate::utils::divmod;
+use crate::database::ExploreItem;
 use poise::serenity_prelude as serenity;
 use chrono::{Utc, Duration, NaiveDateTime};
 use rand::rngs::StdRng;
 use rand::{SeedableRng, seq::SliceRandom};
 use titlecase::titlecase;
+use indoc::indoc;
+
+const EXPLORE_THUMBNAILS: [&str; 4] = [
+    "https://cdn.discordapp.com/attachments/1120178584561143898/1120179397425631302/mountain2.png",
+    "https://cdn.discordapp.com/attachments/1120178584561143898/1120179397668909096/mountain1.png",
+    "https://cdn.discordapp.com/attachments/1120178584561143898/1120179398528741436/mountain3.png",
+    "https://cdn.discordapp.com/attachments/1120178584561143898/1120179397975101471/forest1.png"
+];
 
 /// Displays your wallet and bank balance
 #[poise::command(prefix_command, slash_command, guild_only, aliases("bal"))]
@@ -187,13 +196,10 @@ pub async fn explore(ctx: Context<'_>) -> Result<(), CommandError> {
     let mut rng: StdRng = SeedableRng::from_entropy();
     let tier = [("common", 80), ("rare", 15), ("legendary", 5)].choose_weighted(&mut rng, |i| i.1).unwrap().0;
 
-    let items: Vec<(i16, String)> = sqlx::query!("SELECT id, name FROM explore_items WHERE tier=$1", tier)
+    let items: Vec<ExploreItem> = sqlx::query_as!(ExploreItem, "SELECT * FROM explore_items WHERE tier=$1", tier)
         .fetch_all(&ctx.data().pool)
-        .await?
-        .iter()
-        .map(|r| (r.id, r.name.to_owned()))
-        .collect();
-    let (item_id, item_name) = items.choose(&mut rng).unwrap();
+        .await?;
+    let item = items.choose(&mut rng).unwrap();
 
     sqlx::query!(
         "INSERT INTO inventory (user_id, guild_id) VALUES ($1, $2) ON CONFLICT (user_id, guild_id) DO NOTHING",
@@ -209,19 +215,27 @@ pub async fn explore(ctx: Context<'_>) -> Result<(), CommandError> {
                 AND guild_id=$3
             )
         )",
-        item_id,
+        item.id,
         *ctx.author().id.as_u64() as i64,
         *ctx.guild_id().unwrap().as_u64() as i64
     ).execute(&ctx.data().pool).await?;
 
     ctx.send(|b| b.embed(|e| e
+        .colour(0xFFA500)
         .author(|a| a
             .name("Explore")
             .icon_url(ctx.author().face())
         )
+        .thumbnail(EXPLORE_THUMBNAILS.choose(&mut rng).unwrap())
         .description(format!(
-            "\u{200b}\n*You went exploring and found...*\n\n__**Found**__\n`-` **x1** {} ({})",
-            titlecase(item_name),
+            indoc!("
+            \u{200b}
+            <:magnifying_glass:1120190421067374642> *You went exploring and found... *\n
+            __**Found**__
+            `-` **x1** {} {} ({})
+            "),
+            titlecase(&item.name),
+            item.emoji(),
             titlecase(tier)
         ))
     )).await?;
