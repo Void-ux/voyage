@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serenity = { default-features = false, version = "0.11.5" }
+serenity = { default-features = false, version = "0.11.5", features = [ "cache", "http", "model", "absolute_ratelimits" ] }
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 poise = { version = "0.5.5" }
 dotenv = "0.15.0"
