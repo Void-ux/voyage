@@ -1,6 +1,7 @@
 use crate::structs::{Command, CommandError, BalType};
 use crate::Context;
-use poise::serenity_prelude as serenity;
+use crate::utils::divmod;
+use poise::serenity_prelude::{self as serenity, Emoji};
 use chrono::{Utc, Duration, NaiveDateTime};
 use rand::rngs::StdRng;
 use rand::{SeedableRng, seq::SliceRandom};
@@ -153,11 +154,6 @@ pub async fn withdraw(ctx: Context<'_>, amount: String) -> Result<(), CommandErr
     Ok(())
 }
 
-/// Returns the floored quotient and the remainder of a division operation
-fn divmod(dividend: usize, divisor: usize) -> (usize, usize) {
-    (dividend / divisor, dividend - divisor * (dividend / divisor))
-}
-
 async fn daily_cooldown(ctx: Context<'_>) -> Result<bool, CommandError> {
     let last_execution = sqlx::query!(
         "SELECT used FROM commands WHERE author_id=$1 ORDER BY used DESC LIMIT 1",
@@ -252,6 +248,35 @@ pub async fn explore(ctx: Context<'_>) -> Result<(), CommandError> {
     Ok(())
 }
 
-pub fn commands() -> [Command; 6] {
-    [balance(), give(), deposit(), withdraw(), daily(), explore()]
+/// [dev] adds an item to the inventory list which will be obtainable through exploring
+#[poise::command(prefix_command, slash_command, owners_only)]
+pub async fn additem(
+    ctx: Context<'_>,
+    emoji: Emoji,
+    price: i64,
+    tier: String,
+    #[rest] name: String
+) -> Result<(), CommandError> {
+    sqlx::query!(
+        "INSERT INTO explore_items (name, sell_price, tier, emoji_name, emoji_id) VALUES ($1, $2, $3, $4, $5)",
+        name,
+        price,
+        tier,
+        emoji.name,
+        *emoji.id.as_u64() as i64
+    ).execute(&ctx.data().pool).await?;
+
+    ctx.send(|b| b.embed(|e| e 
+        .colour(0x2D936C)
+        .title("Item Added")
+        .field("Name", titlecase(&name), true)
+        .field("Tier", titlecase(&tier), true)
+        .field("Emoji", emoji, true)
+        .field("Price", price, true)
+    )).await?;
+    Ok(())
+}
+
+pub fn commands() -> [Command; 7] {
+    [balance(), give(), deposit(), withdraw(), daily(), explore(), additem()]
 }

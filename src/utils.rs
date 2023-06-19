@@ -78,3 +78,8 @@ impl TabularData {
         table.join("\n")
     }
 }
+
+/// Returns the floored quotient and the remainder of a division operation
+pub fn divmod(dividend: usize, divisor: usize) -> (usize, usize) {
+    (dividend / divisor, dividend - divisor * (dividend / divisor))
+}
