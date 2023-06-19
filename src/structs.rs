@@ -2,7 +2,8 @@ use std::sync::Mutex;
 
 pub struct Data {
     pub pool: sqlx::postgres::PgPool,
-    pub system_info: Mutex<sysinfo::System>
+    pub system_info: Mutex<sysinfo::System>,
+    pub launch_time: chrono::DateTime<chrono::Utc>
 }
 
 #[derive(sqlx::Type, Debug)]

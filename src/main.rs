@@ -4,6 +4,7 @@ mod structs;
 mod utils;
 
 use std::{env::var, sync::Mutex, time::Duration};
+use chrono::Utc;
 use poise::serenity_prelude as serenity;
 use sysinfo::SystemExt;
 use structs::{CommandError, Context, Data};
@@ -42,7 +43,8 @@ async fn main() {
 
     let data = Data {
         pool,
-        system_info: Mutex::new(sysinfo::System::new())
+        system_info: Mutex::new(sysinfo::System::new()),
+        launch_time: Utc::now()
     };
 
     // FrameworkOptions contains all of poise's configuration option in one struct
